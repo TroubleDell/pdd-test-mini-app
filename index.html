@@ -59,12 +59,14 @@
         let questions = [];
 
         // Загружаем вопросы из файла JSON
-        fetch('questions.json')
-            .then(response => response.json())
-            .then(data => {
-                questions = data;
-                loadQuestion(currentQuestionIndex);
-            });
+        fetch('https://troubledell.github.io/pdd-test-mini-app/questions.json')
+    .then(response => response.json())
+    .then(data => {
+        questions = data;
+        loadQuestion(currentQuestionIndex);
+    })
+    .catch(error => console.error('Error loading questions:', error));
+
 
         // Функция для отображения вопроса
         function loadQuestion(index) {
