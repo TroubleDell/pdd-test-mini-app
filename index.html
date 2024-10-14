@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driving Theory Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #description {
+            display: none;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Driving Theory Test</h1>
+    <div id="test">
+        <div class="question">
+            <h2 id="question-text"></h2>
+            <ul class="options" id="options-list"></ul>
+        </div>
+        <button onclick="submitAnswer()">Submit</button>
+        <button id="show-description" style="display:none;" onclick="showDescription()">Show Explanation</button>
+        <p id="result"></p>
+        <div id="description"></div>
+    </div>
+
+    <script>
+        let currentQuestionIndex = 0;
+        let questions = [];
+
+        // Загружаем вопросы из файла JSON
+        fetch('questions.json')
+            .then(response => response.json())
+            .then(data => {
+                questions = data;
+                loadQuestion(currentQuestionIndex);
+            });
+
+        // Функция для отображения вопроса
+        function loadQuestion(index) {
+            const questionData = questions[index];
+            document.getElementById('question-text').textContent = questionData.question;
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+
+            // Добавляем варианты ответа
+            const optionNames = ['option1', 'option2', 'option3', 'option4'];
+            optionNames.forEach(optionName => {
+                const li = document.createElement('li');
+                li.innerHTML = `<input type="radio" name="option" value="${optionName}"> ${questionData[optionName]}`;
+                optionsList.appendChild(li);
+            });
+
+            // Скрываем кнопку "Показать описание" и очищаем предыдущее описание
+            document.getElementById('show-description').style.display = 'none';
+            document.getElementById('description').style.display = 'none';
+            document.getElementById('description').textContent = '';
+            document.getElementById('result').textContent = '';
+        }
+
+        // Функция для обработки ответа
+        function submitAnswer() {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            const result = document.getElementById('result');
+            if (!selectedOption) {
+                result.textContent = 'Please select an answer!';
+                return;
+            }
+            const userAnswer = selectedOption.value;
+            const correctAnswer = questions[currentQuestionIndex].correct_answer;
+            if (userAnswer === correctAnswer) {
+                result.textContent = 'Correct!';
+                result.style.color = 'green';
+            } else {
+                const correctOptionText = questions[currentQuestionIndex][correctAnswer];
+                result.textContent = `Wrong! The correct answer is: ${correctOptionText}`;
+                result.style.color = 'red';
+            }
+
+            // Показываем кнопку "Показать описание"
+            document.getElementById('show-description').style.display = 'inline';
+        }
+
+        // Функция для показа описания
+        function showDescription() {
+            const description = questions[currentQuestionIndex].description;
+            document.getElementById('description').textContent = description;
+            document.getElementById('description').style.display = 'block';
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                document.getElementById('result').textContent = 'Test completed!';
+            }
+        }
+    </script>
+</body>
+</html>
