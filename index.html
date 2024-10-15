@@ -65,9 +65,12 @@
         <button id="explanation-btn" class="hidden" onclick="showExplanation()">Объяснение</button>
         <p id="result"></p>
         <p id="explanation" class="hidden"></p>
-        <div class="back-buttons">
+        <div class="navigation">
+            <button onclick="prevQuestion()">&#60; Предыдущий</button>
+            <button onclick="nextQuestion()">Следующий &#62;</button>
+        </div>
+        <div class="menu-btns">
             <button onclick="goBackToMenu()">Главное меню</button>
-            <button onclick="nextQuestion()">Следующий вопрос</button>
         </div>
     </div>
 
@@ -99,7 +102,7 @@
         }
 
         // Загрузить вопросы из категории (для системы обучения)
-        function loadCategory(categoryFile) {
+         function loadCategory(categoryFile) {
             fetch(categoryFile)
                 .then(response => response.json())
                 .then(data => {
@@ -159,16 +162,29 @@
             document.getElementById('explanation').textContent = explanation;
             document.getElementById('explanation').classList.remove('hidden');
         }
-
-        // Перейти к следующему вопросу
+        
+       // Перейти к следующему вопросу
         function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
                 loadLearningQuestion();
-            } else {
-                alert('Вы завершили все вопросы в этой категории!');
-                goBackToMenu();
             }
+        }
+
+        // Вернуться к предыдущему вопросу
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadLearningQuestion();
+            }
+        }
+
+        // Вернуться в главное меню
+        function goBackToMenu() {
+            document.getElementById('categories').classList.add('hidden');
+            document.getElementById('learning').classList.add('hidden');
+            document.getElementById('test').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
         }
 
         // Начать экзамен (40 случайных вопросов)
