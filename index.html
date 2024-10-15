@@ -1,27 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Driving Theory Test</title>
+    <title>Теория вождения</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
             background-color: #f0f0f0;
         }
-        .question {
-            margin-bottom: 20px;
-        }
-        .options {
-            list-style: none;
-            padding: 0;
-        }
-        .options li {
-            margin-bottom: 10px;
+        .menu-container {
+            margin: 20px 0;
         }
         button {
-            padding: 10px;
+            padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -31,99 +24,169 @@
         button:hover {
             background-color: #45a049;
         }
-        #description {
+        .hidden {
             display: none;
-            margin-top: 20px;
-            background-color: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Driving Theory Test</h1>
-    <div id="test">
+    <h1>Теория вождения</h1>
+    
+    <div id="menu" class="menu-container">
+        <button onclick="showCategories()">Категории</button>
+        <button onclick="startExam()">Экзамен</button>
+        <button onclick="startMarathon()">Марафон</button>
+    </div>
+    
+    <div id="categories" class="hidden">
+        <h2>Категории</h2>
+        <ul>
+            <li><button onclick="loadCategory('vehicle_control.json')">Управление транспортным средством</button></li>
+            <li><button onclick="loadCategory('road_rules.json')">Правила дорожного движения</button></li>
+            <li><button onclick="loadCategory('risk_management.json')">Управление рисками</button></li>
+            <li><button onclick="loadCategory('safe_driving.json')">Безопасное движение</button></li>
+            <li><button onclick="loadCategory('technical_issues.json')">Технические вопросы</button></li>
+        </ul>
+    </div>
+
+    <div id="test" class="hidden">
         <div class="question">
             <h2 id="question-text"></h2>
             <ul class="options" id="options-list"></ul>
         </div>
-        <button onclick="submitAnswer()">Submit</button>
-        <button id="show-description" style="display:none;" onclick="showDescription()">Show Explanation</button>
+        <button onclick="submitAnswer()">Ответить</button>
+        <p id="timer"></p>
         <p id="result"></p>
-        <div id="description"></div>
     </div>
 
     <script>
         let currentQuestionIndex = 0;
+        let correctAnswers = 0;
         let questions = [];
+        let timer;
+        let timeLeft;
 
-        // Загружаем вопросы из файла JSON
-        fetch('https://troubledell.github.io/pdd-test-mini-app/questions.json')
-    .then(response => response.json())
-    .then(data => {
-        questions = data;
-        loadQuestion(currentQuestionIndex);
-    })
-    .catch(error => console.error('Error loading questions:', error));
+        function showCategories() {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('categories').classList.remove('hidden');
+        }
 
+        function loadCategory(categoryFile) {
+            fetch(categoryFile)
+                .then(response => response.json())
+                .then(data => {
+                    questions = data;
+                    currentQuestionIndex = 0;
+                    correctAnswers = 0;
+                    loadQuestion();
+                    document.getElementById('categories').classList.add('hidden');
+                    document.getElementById('test').classList.remove('hidden');
+                });
+        }
 
-        // Функция для отображения вопроса
-        function loadQuestion(index) {
-            const questionData = questions[index];
+        function startExam() {
+            fetch('all_questions.json')
+                .then(response => response.json())
+                .then(data => {
+                    questions = getRandomQuestions(data, 40);
+                    currentQuestionIndex = 0;
+                    correctAnswers = 0;
+                    startTimer(2400); // 40 минут = 2400 секунд
+                    loadQuestion();
+                    document.getElementById('menu').classList.add('hidden');
+                    document.getElementById('test').classList.remove('hidden');
+                });
+        }
+
+        function startMarathon() {
+            fetch('all_questions.json')
+                .then(response => response.json())
+                .then(data => {
+                    questions = shuffleQuestions(data);
+                    currentQuestionIndex = 0;
+                    correctAnswers = 0;
+                    startStopwatch();
+                    loadQuestion();
+                    document.getElementById('menu').classList.add('hidden');
+                    document.getElementById('test').classList.remove('hidden');
+                });
+        }
+
+        function getRandomQuestions(arr, num) {
+            const shuffled = arr.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, num);
+        }
+
+        function shuffleQuestions(arr) {
+            return arr.sort(() => 0.5 - Math.random());
+        }
+
+        function startTimer(seconds) {
+            timeLeft = seconds;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Осталось времени: ${Math.floor(timeLeft / 60)} минут ${timeLeft % 60} секунд`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    finishTest();
+                }
+            }, 1000);
+        }
+
+        function startStopwatch() {
+            let timePassed = 0;
+            timer = setInterval(() => {
+                timePassed++;
+                document.getElementById('timer').textContent = `Время: ${Math.floor(timePassed / 60)} минут ${timePassed % 60} секунд`;
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            const questionData = questions[currentQuestionIndex];
             document.getElementById('question-text').textContent = questionData.question;
             const optionsList = document.getElementById('options-list');
             optionsList.innerHTML = '';
 
-            // Добавляем варианты ответа
-            const optionNames = ['option1', 'option2', 'option3', 'option4'];
-            optionNames.forEach(optionName => {
+            ['option1', 'option2', 'option3', 'option4'].forEach(optionName => {
                 const li = document.createElement('li');
                 li.innerHTML = `<input type="radio" name="option" value="${optionName}"> ${questionData[optionName]}`;
                 optionsList.appendChild(li);
             });
 
-            // Скрываем кнопку "Показать описание" и очищаем предыдущее описание
-            document.getElementById('show-description').style.display = 'none';
-            document.getElementById('description').style.display = 'none';
-            document.getElementById('description').textContent = '';
             document.getElementById('result').textContent = '';
         }
 
-        // Функция для обработки ответа
         function submitAnswer() {
             const selectedOption = document.querySelector('input[name="option"]:checked');
-            const result = document.getElementById('result');
             if (!selectedOption) {
-                result.textContent = 'Please select an answer!';
+                alert('Выберите ответ!');
                 return;
             }
+
             const userAnswer = selectedOption.value;
             const correctAnswer = questions[currentQuestionIndex].correct_answer;
+
             if (userAnswer === correctAnswer) {
-                result.textContent = 'Correct!';
-                result.style.color = 'green';
-            } else {
-                const correctOptionText = questions[currentQuestionIndex][correctAnswer];
-                result.textContent = `Wrong! The correct answer is: ${correctOptionText}`;
-                result.style.color = 'red';
+                correctAnswers++;
             }
 
-            // Показываем кнопку "Показать описание"
-            document.getElementById('show-description').style.display = 'inline';
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                finishTest();
+            }
         }
 
-        // Функция для показа описания
-        function showDescription() {
-            const description = questions[currentQuestionIndex].description;
-            document.getElementById('description').textContent = description;
-            document.getElementById('description').style.display = 'block';
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                loadQuestion(currentQuestionIndex);
+        function finishTest() {
+            clearInterval(timer);
+            if (questions.length === 40 && correctAnswers < 35) {
+                alert(`Вы не прошли экзамен. Правильных ответов: ${correctAnswers}`);
             } else {
-                document.getElementById('result').textContent = 'Test completed!';
+                alert(`Тест завершён! Правильных ответов: ${correctAnswers}`);
             }
+            // Здесь вы можете добавить возможность просмотра неправильных ответов
         }
     </script>
 </body>
