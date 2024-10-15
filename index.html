@@ -10,7 +10,7 @@
             padding: 20px;
             background-color: #f0f0f0;
         }
-        .menu-container {
+        .menu-container, .back-buttons {
             margin: 20px 0;
         }
         button {
@@ -32,23 +32,29 @@
 <body>
     <h1>Теория вождения</h1>
     
+    <!-- Главное меню -->
     <div id="menu" class="menu-container">
         <button onclick="showCategories()">Категории</button>
         <button onclick="startExam()">Экзамен</button>
         <button onclick="startMarathon()">Марафон</button>
     </div>
     
+    <!-- Категории -->
     <div id="categories" class="hidden">
         <h2>Категории</h2>
         <ul>
-            <li><button onclick="loadCategory('vehicle_control.json')">Управление транспортным средством</button></li>
+            <li><button onclick="loadCategory('https://troubledell.github.io/pdd-test-mini-app/questions.json')">Управление транспортным средством</button></li>
             <li><button onclick="loadCategory('road_rules.json')">Правила дорожного движения</button></li>
             <li><button onclick="loadCategory('risk_management.json')">Управление рисками</button></li>
             <li><button onclick="loadCategory('safe_driving.json')">Безопасное движение</button></li>
             <li><button onclick="loadCategory('technical_issues.json')">Технические вопросы</button></li>
         </ul>
+        <div class="back-buttons">
+            <button onclick="goBackToMenu()">Главное меню</button>
+        </div>
     </div>
 
+    <!-- Тест и марафон -->
     <div id="test" class="hidden">
         <div class="question">
             <h2 id="question-text"></h2>
@@ -57,6 +63,9 @@
         <button onclick="submitAnswer()">Ответить</button>
         <p id="timer"></p>
         <p id="result"></p>
+        <div class="back-buttons">
+            <button onclick="goBackToMenu()">Главное меню</button>
+        </div>
     </div>
 
     <script>
@@ -66,11 +75,13 @@
         let timer;
         let timeLeft;
 
+        // Показать категории
         function showCategories() {
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('categories').classList.remove('hidden');
         }
 
+        // Загрузить вопросы из категории
         function loadCategory(categoryFile) {
             fetch(categoryFile)
                 .then(response => response.json())
@@ -84,6 +95,7 @@
                 });
         }
 
+        // Начать экзамен
         function startExam() {
             fetch('all_questions.json')
                 .then(response => response.json())
@@ -98,6 +110,7 @@
                 });
         }
 
+        // Начать марафон
         function startMarathon() {
             fetch('all_questions.json')
                 .then(response => response.json())
@@ -112,15 +125,26 @@
                 });
         }
 
+        // Вернуться в главное меню
+        function goBackToMenu() {
+            document.getElementById('categories').classList.add('hidden');
+            document.getElementById('test').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+            clearInterval(timer);  // Останавливаем таймер при возвращении
+        }
+
+        // Получить случайные вопросы
         function getRandomQuestions(arr, num) {
             const shuffled = arr.sort(() => 0.5 - Math.random());
             return shuffled.slice(0, num);
         }
 
+        // Перемешать вопросы для марафона
         function shuffleQuestions(arr) {
             return arr.sort(() => 0.5 - Math.random());
         }
 
+        // Запуск таймера
         function startTimer(seconds) {
             timeLeft = seconds;
             timer = setInterval(() => {
@@ -133,6 +157,7 @@
             }, 1000);
         }
 
+        // Запуск секундомера
         function startStopwatch() {
             let timePassed = 0;
             timer = setInterval(() => {
@@ -141,6 +166,7 @@
             }, 1000);
         }
 
+        // Загрузить вопрос
         function loadQuestion() {
             const questionData = questions[currentQuestionIndex];
             document.getElementById('question-text').textContent = questionData.question;
@@ -156,6 +182,7 @@
             document.getElementById('result').textContent = '';
         }
 
+        // Отправить ответ
         function submitAnswer() {
             const selectedOption = document.querySelector('input[name="option"]:checked');
             if (!selectedOption) {
@@ -179,6 +206,7 @@
             }
         }
 
+        // Завершить тест
         function finishTest() {
             clearInterval(timer);
             if (questions.length === 40 && correctAnswers < 35) {
@@ -186,7 +214,7 @@
             } else {
                 alert(`Тест завершён! Правильных ответов: ${correctAnswers}`);
             }
-            // Здесь вы можете добавить возможность просмотра неправильных ответов
+            // Добавьте возможность просмотра неправильных ответов здесь
         }
     </script>
 </body>
