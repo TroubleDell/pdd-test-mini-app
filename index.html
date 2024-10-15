@@ -142,10 +142,12 @@
             optionsList.innerHTML = '';
 
             ['option1', 'option2', 'option3', 'option4'].forEach(optionName => {
-                const li = document.createElement('li');
-                li.innerHTML = `<input type="radio" name="option" value="${optionName}"> ${questionData[optionName]}`;
-                optionsList.appendChild(li);
-            });
+    if (questionData[optionName]) {  // Только отображать непустые варианты
+        const li = document.createElement('li');
+        li.innerHTML = `<input type="radio" name="option" value="${optionName}"> ${questionData[optionName]}`;
+        optionsList.appendChild(li);
+    }
+});
 
             // Скрываем результат и кнопку "Объяснение" до ответа
             document.getElementById('result').textContent = '';
