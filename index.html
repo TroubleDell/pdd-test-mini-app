@@ -55,13 +55,29 @@
         </div>
     </div>
 
+    <!-- Система обучения -->
+    <div id="learning" class="hidden">
+        <div class="question">
+            <h2 id="question-text"></h2>
+            <ul class="options" id="options-list"></ul>
+        </div>
+        <button onclick="submitAnswer()">Ответить</button>
+        <button id="explanation-btn" class="hidden" onclick="showExplanation()">Объяснение</button>
+        <p id="result"></p>
+        <p id="explanation" class="hidden"></p>
+        <div class="back-buttons">
+            <button onclick="goBackToMenu()">Главное меню</button>
+            <button onclick="nextQuestion()">Следующий вопрос</button>
+        </div>
+    </div>
+
     <!-- Тест и марафон -->
     <div id="test" class="hidden">
         <div class="question">
             <h2 id="question-text"></h2>
             <ul class="options" id="options-list"></ul>
         </div>
-        <button onclick="submitAnswer()">Ответить</button>
+        <button onclick="submitAnswerTest()">Ответить</button>
         <p id="timer"></p>
         <p id="result"></p>
         <div class="back-buttons">
@@ -82,21 +98,80 @@
             document.getElementById('categories').classList.remove('hidden');
         }
 
-        // Загрузить вопросы из категории
+        // Загрузить вопросы из категории (для системы обучения)
         function loadCategory(categoryFile) {
             fetch(categoryFile)
                 .then(response => response.json())
                 .then(data => {
                     questions = data;
                     currentQuestionIndex = 0;
-                    correctAnswers = 0;
-                    loadQuestion();
+                    loadLearningQuestion();
                     document.getElementById('categories').classList.add('hidden');
-                    document.getElementById('test').classList.remove('hidden');
+                    document.getElementById('learning').classList.remove('hidden');
                 });
         }
 
-        // Начать экзамен
+        // Загрузить вопрос для обучения
+        function loadLearningQuestion() {
+            const questionData = questions[currentQuestionIndex];
+            document.getElementById('question-text').textContent = questionData.question;
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+
+            ['option1', 'option2', 'option3', 'option4'].forEach(optionName => {
+                const li = document.createElement('li');
+                li.innerHTML = `<input type="radio" name="option" value="${optionName}"> ${questionData[optionName]}`;
+                optionsList.appendChild(li);
+            });
+
+            // Скрываем результат и кнопку "Объяснение" до ответа
+            document.getElementById('result').textContent = '';
+            document.getElementById('explanation').classList.add('hidden');
+            document.getElementById('explanation-btn').classList.add('hidden');
+        }
+
+        // Отправить ответ (обучение)
+        function submitAnswer() {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            if (!selectedOption) {
+                alert('Выберите ответ!');
+                return;
+            }
+
+            const userAnswer = selectedOption.value;
+            const correctAnswer = questions[currentQuestionIndex].correct_answer;
+
+            if (userAnswer === correctAnswer) {
+                document.getElementById('result').textContent = 'Верно!';
+                document.getElementById('result').style.color = 'green';
+            } else {
+                document.getElementById('result').textContent = `Неверно. Правильный ответ: ${questions[currentQuestionIndex][correctAnswer]}`;
+                document.getElementById('result').style.color = 'red';
+            }
+
+            // Показать кнопку "Объяснение"
+            document.getElementById('explanation-btn').classList.remove('hidden');
+        }
+
+        // Показать объяснение после ответа
+        function showExplanation() {
+            const explanation = questions[currentQuestionIndex].description;
+            document.getElementById('explanation').textContent = explanation;
+            document.getElementById('explanation').classList.remove('hidden');
+        }
+
+        // Перейти к следующему вопросу
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadLearningQuestion();
+            } else {
+                alert('Вы завершили все вопросы в этой категории!');
+                goBackToMenu();
+            }
+        }
+
+        // Начать экзамен (40 случайных вопросов)
         function startExam() {
             fetch('all_questions.json')
                 .then(response => response.json())
@@ -105,13 +180,13 @@
                     currentQuestionIndex = 0;
                     correctAnswers = 0;
                     startTimer(2400); // 40 минут = 2400 секунд
-                    loadQuestion();
+                    loadQuestionTest();
                     document.getElementById('menu').classList.add('hidden');
                     document.getElementById('test').classList.remove('hidden');
                 });
         }
 
-        // Начать марафон
+        // Начать марафон (все вопросы)
         function startMarathon() {
             fetch('all_questions.json')
                 .then(response => response.json())
@@ -120,7 +195,7 @@
                     currentQuestionIndex = 0;
                     correctAnswers = 0;
                     startStopwatch();
-                    loadQuestion();
+                    loadQuestionTest();
                     document.getElementById('menu').classList.add('hidden');
                     document.getElementById('test').classList.remove('hidden');
                 });
@@ -129,6 +204,7 @@
         // Вернуться в главное меню
         function goBackToMenu() {
             document.getElementById('categories').classList.add('hidden');
+            document.getElementById('learning').classList.add('hidden');
             document.getElementById('test').classList.add('hidden');
             document.getElementById('menu').classList.remove('hidden');
             clearInterval(timer);  // Останавливаем таймер при возвращении
@@ -158,7 +234,7 @@
             }, 1000);
         }
 
-        // Запуск секундомера
+        // Запуск секундомера для марафона
         function startStopwatch() {
             let timePassed = 0;
             timer = setInterval(() => {
@@ -167,8 +243,8 @@
             }, 1000);
         }
 
-        // Загрузить вопрос
-        function loadQuestion() {
+        // Загрузить вопрос для теста/марафона
+        function loadQuestionTest() {
             const questionData = questions[currentQuestionIndex];
             document.getElementById('question-text').textContent = questionData.question;
             const optionsList = document.getElementById('options-list');
@@ -183,8 +259,8 @@
             document.getElementById('result').textContent = '';
         }
 
-        // Отправить ответ
-        function submitAnswer() {
+        // Отправить ответ для теста/марафона
+        function submitAnswerTest() {
             const selectedOption = document.querySelector('input[name="option"]:checked');
             if (!selectedOption) {
                 alert('Выберите ответ!');
@@ -201,7 +277,7 @@
             currentQuestionIndex++;
 
             if (currentQuestionIndex < questions.length) {
-                loadQuestion();
+                loadQuestionTest();
             } else {
                 finishTest();
             }
