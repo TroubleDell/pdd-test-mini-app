@@ -115,6 +115,32 @@
             padding: 10px;
             font-size: 16px;
         }
+        .confirm-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #40e0d0;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-width: 90%;
+            text-align: center;
+        }
+        .confirm-modal button {
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .confirm-modal button.cancel {
+            background-color: red;
+        }
     </style>
 </head>
 <body>
@@ -317,10 +343,30 @@
 
         // Подтверждение выхода в главное меню
         function confirmExit() {
-            const confirmAction = confirm('Вы хотите выйти в главное меню?');
-            if (confirmAction) {
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'confirm-modal';
+
+            const message = document.createElement('p');
+            message.textContent = 'Вы хотите выйти в главное меню?';
+            confirmModal.appendChild(message);
+
+            const yesButton = document.createElement('button');
+            yesButton.textContent = 'Да';
+            yesButton.onclick = () => {
                 goBackToMenu();
-            }
+                document.body.removeChild(confirmModal);
+            };
+            confirmModal.appendChild(yesButton);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Отмена';
+            cancelButton.className = 'cancel';
+            cancelButton.onclick = () => {
+                document.body.removeChild(confirmModal);
+            };
+            confirmModal.appendChild(cancelButton);
+
+            document.body.appendChild(confirmModal);
         }
 
         // Вернуться в главное меню
