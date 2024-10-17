@@ -8,7 +8,9 @@
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            background-color: #f0f0f0;
+            background-color: #f5deb3; /* Цвет пергамента */
+            font-size: 18px;
+            line-height: 1.6;
         }
         .menu-container, .back-buttons {
             margin: 20px 0;
@@ -18,7 +20,8 @@
             bottom: 20px;
             width: 100%;
             display: flex;
-            justify-content: center; gap: 10px; bottom: 50px;
+            justify-content: center;
+            gap: 10px;
             padding: 10px;
             background-color: white;
             box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
@@ -29,6 +32,7 @@
             color: white;
             border: none;
             cursor: pointer;
+            font-size: 16px;
         }
         .navigation button:hover {
             background-color: #45a049;
@@ -40,6 +44,7 @@
             border: none;
             cursor: pointer;
             margin-right: 10px;
+            font-size: 16px;
         }
         button:hover {
             background-color: #45a049;
@@ -47,7 +52,7 @@
         .hidden {
             display: none;
         }
-    .highlight-correct {
+        .highlight-correct {
             animation: highlight-correct 1s ease-in-out;
             background-color: #28a745;
         }
@@ -63,10 +68,33 @@
             0% { background-color: #dc3545; }
             100% { background-color: transparent; }
         }
+        .close-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            font-size: 18px;
+        }
+        .question-container {
+            display: flex;
+            align-items: center;
+        }
+        .answer-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .answer-container button {
+            margin-left: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Теория вождения</h1>
+    <h1 id="main-title">Теория вождения</h1>
     
     <!-- Главное меню -->
     <div id="menu" class="menu-container">
@@ -75,6 +103,9 @@
         <button onclick="startMarathon()">Марафон</button>
     </div>
     
+    <!-- Кнопка закрытия -->
+    <button class="close-btn" onclick="confirmExit()">✖</button>
+
     <!-- Категории -->
     <div id="categories" class="hidden">
         <h2>Категории</h2>
@@ -93,20 +124,23 @@
 
     <!-- Система обучения -->
     <div id="learning" class="hidden">
-        <div class="question">
-            <h2 id="question-text"></h2>
-            <ul class="options" id="options-list"></ul>
+        <div class="question-container">
+            <div class="question">
+                <p id="question-number" style="font-weight: bold;">Вопрос 1/22</p>
+                <div class="question">
+                    <h2 id="question-text"></h2>
+                    <ul class="options" id="options-list"></ul>
+                    <div class="answer-container">
+                        <button onclick="submitAnswer()">Ответить</button>
+                        <button id="explanation-btn" class="hidden" onclick="showExplanation()">Объяснение</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <button onclick="submitAnswer()">Ответить</button>
-        <button id="explanation-btn" class="hidden" onclick="showExplanation()" style="position: relative; margin: 20px auto; display: block;">Объяснение</button>
         
-        <p id="explanation" class="hidden"></p>
         <div class="navigation">
             <button onclick="prevQuestion()">←</button>
             <button onclick="nextQuestion()">→</button>
-        </div>
-        <div class="menu-btns">
-            <button onclick="goBackToMenu()">Главное меню</button>
         </div>
     </div>
 
@@ -128,6 +162,7 @@
         let currentQuestionIndex = 0;
         let correctAnswers = 0;
         let questions = [];
+        let shuffledQuestions = [];
         let timer;
         let timeLeft;
 
@@ -140,33 +175,46 @@
         // Загрузить вопросы из категории (для системы обучения)
         function loadCategory(categoryFile) {
             fetch(categoryFile)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok: ${response.status} - ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     questions = data;
+                    shuffledQuestions = questions.sort(() => Math.random() - 0.5);
                     currentQuestionIndex = 0;
                     loadLearningQuestion();
                     document.getElementById('categories').classList.add('hidden');
                     document.getElementById('learning').classList.remove('hidden');
+                    document.getElementById('main-title').classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('Ошибка при получении данных:', error);
+                    alert(`Не удалось загрузить данные: ${error.message}`);
                 });
         }
 
         // Загрузить вопрос для обучения
         function loadLearningQuestion() {
-            const questionData = questions[currentQuestionIndex];
+            const questionData = shuffledQuestions[currentQuestionIndex];
+            document.getElementById('question-number').textContent = `Вопрос ${currentQuestionIndex + 1}/${shuffledQuestions.length}`;
             document.getElementById('question-text').textContent = questionData.question;
+            document.getElementById('question-text').style.fontSize = '16px';
+            document.getElementById('question-text').style.fontWeight = 'bold';
             const optionsList = document.getElementById('options-list');
             optionsList.innerHTML = '';
 
-            ['option1', 'option2', 'option3', 'option4'].forEach(optionName => {
-                if (questionData[optionName]) {  // Только отображать непустые варианты
+            ['option1', 'option2', 'option3', 'option4'].sort(() => Math.random() - 0.5).forEach(optionName => {
+                if (questionData[optionName]) {
                     const li = document.createElement('li');
-                    li.innerHTML = `<input type="radio" name="option" value="${optionName}"> ${questionData[optionName]}`;
+                    li.innerHTML = `<input type="radio" name="option" value="${optionName}" style="width: 1.5em; height: 1.5em;"> ${questionData[optionName]}`;
                     optionsList.appendChild(li);
                 }
             });
 
             // Скрываем результат и кнопку "Объяснение" до ответа
-            document.getElementById('explanation').classList.add('hidden');
             document.getElementById('explanation-btn').classList.add('hidden');
         }
 
@@ -179,6 +227,7 @@
             }
 
             const correctAnswer = questions[currentQuestionIndex].correct_answer;
+            let isCorrect = false;
 
             document.querySelectorAll('input[name="option"]').forEach(option => {
                 if (option.value === correctAnswer) {
@@ -189,28 +238,60 @@
             });
 
             if (selectedOption.value === correctAnswer) {
-                const correctOption = selectedOption.parentElement;
-                correctOption.classList.add('highlight-correct');
+                isCorrect = true;
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1000); // Переход к следующему вопросу через 1 секунду при правильном ответе
             }
 
-            // Показать кнопку "Объяснение"
-            document.getElementById('explanation-btn').classList.remove('hidden');
-            document.getElementById('explanation-btn').style.display = 'block';
+            // Показать кнопку "Объяснение", только если ответ неверный
+            if (!isCorrect) {
+                document.getElementById('explanation-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('explanation-btn').classList.add('hidden');
+            }
         }
 
         // Показать объяснение после ответа
         function showExplanation() {
             const explanation = questions[currentQuestionIndex].Explanation;
+            const explanationModal = document.createElement('div');
+            explanationModal.style.position = 'fixed';
+            explanationModal.style.top = '50%';
+            explanationModal.style.left = '50%';
+            explanationModal.style.transform = 'translate(-50%, -50%)';
+            explanationModal.style.backgroundColor = '#40e0d0';
+            explanationModal.style.color = 'white';
+            explanationModal.style.padding = '20px';
+            explanationModal.style.borderRadius = '10px';
+            explanationModal.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.3)';
+            explanationModal.style.zIndex = '1000';
+
             if (explanation) {
-                document.getElementById('explanation').textContent = explanation;
-                document.getElementById('explanation').classList.remove('hidden');
+                explanationModal.textContent = explanation;
             } else {
-                document.getElementById('explanation').textContent = 'Объяснение отсутствует для данного вопроса.';
-                document.getElementById('explanation').classList.remove('hidden');
+                explanationModal.textContent = 'Объяснение отсутствует для данного вопроса.';
             }
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'Закрыть';
+            closeButton.style.marginTop = '10px';
+            closeButton.style.backgroundColor = 'red';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.padding = '10px';
+            closeButton.style.fontSize = '16px';
+            closeButton.onclick = () => {
+                document.body.removeChild(explanationModal);
+            };
+
+            explanationModal.appendChild(document.createElement('br'));
+            explanationModal.appendChild(closeButton);
+            document.body.appendChild(explanationModal);
         }
-        
-       // Перейти к следующему вопросу
+
+        // Перейти к следующему вопросу
         function nextQuestion() {
             if (currentQuestionIndex < questions.length - 1) {
                 currentQuestionIndex++;
@@ -226,126 +307,22 @@
             }
         }
 
+        // Подтверждение выхода в главное меню
+        function confirmExit() {
+            const confirmAction = confirm('Вы хотите выйти в главное меню?');
+            if (confirmAction) {
+                goBackToMenu();
+            }
+        }
+
         // Вернуться в главное меню
         function goBackToMenu() {
             document.getElementById('categories').classList.add('hidden');
             document.getElementById('learning').classList.add('hidden');
             document.getElementById('test').classList.add('hidden');
             document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('main-title').classList.remove('hidden');
             clearInterval(timer);  // Останавливаем таймер при возвращении
-        }
-
-        // Начать экзамен (40 случайных вопросов)
-        function startExam() {
-            fetch('all_questions.json')
-                .then(response => response.json())
-                .then(data => {
-                    questions = getRandomQuestions(data, 40);
-                    currentQuestionIndex = 0;
-                    correctAnswers = 0;
-                    startTimer(2400); // 40 минут = 2400 секунд
-                    loadQuestionTest();
-                    document.getElementById('menu').classList.add('hidden');
-                    document.getElementById('test').classList.remove('hidden');
-                });
-        }
-
-        // Начать марафон (все вопросы)
-        function startMarathon() {
-            fetch('all_questions.json')
-                .then(response => response.json())
-                .then(data => {
-                    questions = shuffleQuestions(data);
-                    currentQuestionIndex = 0;
-                    correctAnswers = 0;
-                    startStopwatch();
-                    loadQuestionTest();
-                    document.getElementById('menu').classList.add('hidden');
-                    document.getElementById('test').classList.remove('hidden');
-                });
-        }
-
-        // Получить случайные вопросы
-        function getRandomQuestions(arr, num) {
-            const shuffled = arr.sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, num);
-        }
-
-        // Перемешать вопросы для марафона
-        function shuffleQuestions(arr) {
-            return arr.sort(() => 0.5 - Math.random());
-        }
-
-        // Запуск таймера
-        function startTimer(seconds) {
-            timeLeft = seconds;
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = `Осталось времени: ${Math.floor(timeLeft / 60)} минут ${timeLeft % 60} секунд`;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    finishTest();
-                }
-            }, 1000);
-        }
-
-        // Запуск секундомера для марафона
-        function startStopwatch() {
-            let timePassed = 0;
-            timer = setInterval(() => {
-                timePassed++;
-                document.getElementById('timer').textContent = `Время: ${Math.floor(timePassed / 60)} минут ${timePassed % 60} секунд`;
-            }, 1000);
-        }
-
-        // Загрузить вопрос для теста/марафона
-        function loadQuestionTest() {
-            const questionData = questions[currentQuestionIndex];
-            document.getElementById('question-text').textContent = questionData.question;
-            const optionsList = document.getElementById('options-list');
-            optionsList.innerHTML = '';
-
-            ['option1', 'option2', 'option3', 'option4'].forEach(optionName => {
-                const li = document.createElement('li');
-                li.innerHTML = `<input type="radio" name="option" value="${optionName}"> ${questionData[optionName]}`;
-                optionsList.appendChild(li);
-            });
-
-            document.getElementById('result').textContent = '';
-        }
-
-        // Отправить ответ для теста/марафона
-        function submitAnswerTest() {
-            const selectedOption = document.querySelector('input[name="option"]:checked');
-            if (!selectedOption) {
-                alert('Выберите ответ!');
-                return;
-            }
-
-            const correctAnswer = questions[currentQuestionIndex].correct_answer;
-
-            if (selectedOption.value === correctAnswer) {
-                correctAnswers++;
-            }
-
-            currentQuestionIndex++;
-
-            if (currentQuestionIndex < questions.length) {
-                loadQuestionTest();
-            } else {
-                finishTest();
-            }
-        }
-
-        // Завершить тест
-        function finishTest() {
-            clearInterval(timer);
-            if (questions.length === 40 && correctAnswers < 35) {
-                alert(`Вы не прошли экзамен. Правильных ответов: ${correctAnswers}`);
-            } else {
-                alert(`Тест завершён! Правильных ответов: ${correctAnswers}`);
-            }
-            // Добавьте возможность просмотра неправильных ответов здесь
         }
     </script>
 </body>
