@@ -91,6 +91,30 @@
         .answer-container button {
             margin-left: 20px;
         }
+        .explanation-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #40e0d0;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-width: 90%;
+            overflow-y: auto;
+            max-height: 80%;
+        }
+        .explanation-modal button {
+            margin-top: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -256,16 +280,7 @@
         function showExplanation() {
             const explanation = questions[currentQuestionIndex].Explanation;
             const explanationModal = document.createElement('div');
-            explanationModal.style.position = 'fixed';
-            explanationModal.style.top = '50%';
-            explanationModal.style.left = '50%';
-            explanationModal.style.transform = 'translate(-50%, -50%)';
-            explanationModal.style.backgroundColor = '#40e0d0';
-            explanationModal.style.color = 'white';
-            explanationModal.style.padding = '20px';
-            explanationModal.style.borderRadius = '10px';
-            explanationModal.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.3)';
-            explanationModal.style.zIndex = '1000';
+            explanationModal.className = 'explanation-modal';
 
             if (explanation) {
                 explanationModal.textContent = explanation;
@@ -275,13 +290,6 @@
 
             const closeButton = document.createElement('button');
             closeButton.textContent = 'Закрыть';
-            closeButton.style.marginTop = '10px';
-            closeButton.style.backgroundColor = 'red';
-            closeButton.style.color = 'white';
-            closeButton.style.border = 'none';
-            closeButton.style.cursor = 'pointer';
-            closeButton.style.padding = '10px';
-            closeButton.style.fontSize = '16px';
             closeButton.onclick = () => {
                 document.body.removeChild(explanationModal);
             };
@@ -309,7 +317,7 @@
 
         // Подтверждение выхода в главное меню
         function confirmExit() {
-            const confirmAction = window.confirm('Вы хотите выйти в главное меню?');
+            const confirmAction = confirm('Вы хотите выйти в главное меню?');
             if (confirmAction) {
                 goBackToMenu();
             }
@@ -327,4 +335,3 @@
     </script>
 </body>
 </html>
-
