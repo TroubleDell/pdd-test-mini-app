@@ -15,6 +15,23 @@
         .menu-container, .back-buttons {
             margin: 20px 0;
         }
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .menu-container button {
+            padding: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            width: 100%;
+        }
+        .menu-container button:hover {
+            background-color: #45a049;
+        }
         .navigation {
             position: fixed;
             bottom: 20px;
@@ -102,9 +119,9 @@
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            max-width: 90%;
-            overflow-y: auto;
+            width: 80%;
             max-height: 80%;
+            overflow-y: auto;
         }
         .explanation-modal button {
             margin-top: 10px;
@@ -141,6 +158,25 @@
         .confirm-modal button.cancel {
             background-color: red;
         }
+        #categories ul {
+            list-style: none;
+            padding: 0;
+        }
+        #categories ul li {
+            margin-bottom: 10px;
+        }
+        #categories ul button {
+            padding: 15px;
+            width: 100%;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #categories ul button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -164,7 +200,7 @@
             <li><button onclick="loadCategory('road_rules.json')">Правила дорожного движения</button></li>
             <li><button onclick="loadCategory('risk_management.json')">Управление рисками</button></li>
             <li><button onclick="loadCategory('safe_driving.json')">Безопасное движение</button></li>
-            <li><button onclick="loadCategory('technical_issues.json')">Технические вопросы</button></li>
+            <li><button onclick="loadCategory('https://raw.githubusercontent.com/TroubleDell/pdd-test-mini-app/cb6878b0a54fc6ac8174956bddf2a1289e511fbf/tex.questionjson.json')">Технические вопросы</button></li>
         </ul>
         <!-- Кнопка "Назад" для возврата в главное меню -->
         <div class="back-buttons">
@@ -291,7 +327,7 @@
                 isCorrect = true;
                 setTimeout(() => {
                     nextQuestion();
-                }, 1000); // Переход к следующему вопросу через 1 секунду при правильном ответе
+                }, 1500); // Переход к следующему вопросу через 1 секунду при правильном ответе
             }
 
             // Показать кнопку "Объяснение", только если ответ неверный
@@ -304,7 +340,7 @@
 
         // Показать объяснение после ответа
         function showExplanation() {
-            const explanation = questions[currentQuestionIndex].Explanation;
+            const explanation = questions[currentQuestionIndex].explanation;
             const explanationModal = document.createElement('div');
             explanationModal.className = 'explanation-modal';
 
