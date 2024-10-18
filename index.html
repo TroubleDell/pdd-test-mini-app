@@ -33,26 +33,7 @@
             background-color: #45a049;
         }
         .navigation {
-            position: fixed;
-            bottom: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
-            background-color: white;
-            box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .navigation button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .navigation button:hover {
-            background-color: #45a049;
+            display: none;
         }
         button {
             padding: 10px 20px;
@@ -98,7 +79,29 @@
         }
         .question-container {
             display: flex;
+            flex-direction: column;
             align-items: center;
+            position: relative;
+        }
+        #question-number {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .arrow-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 10px;
+            margin: 0 15px;
+        }
+        .arrow-button:hover {
+            background-color: #45a049;
         }
         .answer-container {
             display: flex;
@@ -211,22 +214,19 @@
     <!-- Система обучения -->
     <div id="learning" class="hidden">
         <div class="question-container">
+            <div id="question-number">
+                <button class="arrow-button" onclick="prevQuestion()">←</button>
+                <span id="question-text-number">Вопрос 1/22</span>
+                <button class="arrow-button" onclick="nextQuestion()">→</button>
+            </div>
             <div class="question">
-                <p id="question-number" style="font-weight: bold;">Вопрос 1/22</p>
-                <div class="question">
-                    <h2 id="question-text"></h2>
-                    <ul class="options" id="options-list"></ul>
-                    <div class="answer-container">
-                        <button onclick="submitAnswer()">Ответить</button>
-                        <button id="explanation-btn" class="hidden" onclick="showExplanation()">Объяснение</button>
-                    </div>
+                <h2 id="question-text"></h2>
+                <ul class="options" id="options-list"></ul>
+                <div class="answer-container">
+                    <button onclick="submitAnswer()">Ответить</button>
+                    <button id="explanation-btn" class="hidden" onclick="showExplanation()">Объяснение</button>
                 </div>
             </div>
-        </div>
-        
-        <div class="navigation">
-            <button onclick="prevQuestion()">←</button>
-            <button onclick="nextQuestion()">→</button>
         </div>
     </div>
 
@@ -285,7 +285,7 @@
         // Загрузить вопрос для обучения
         function loadLearningQuestion() {
             const questionData = shuffledQuestions[currentQuestionIndex];
-            document.getElementById('question-number').textContent = `Вопрос ${currentQuestionIndex + 1}/${shuffledQuestions.length}`;
+            document.getElementById('question-text-number').textContent = `Вопрос ${currentQuestionIndex + 1}/${shuffledQuestions.length}`;
             document.getElementById('question-text').textContent = questionData.question;
             document.getElementById('question-text').style.fontSize = '16px';
             document.getElementById('question-text').style.fontWeight = 'bold';
@@ -308,7 +308,17 @@
         function submitAnswer() {
             const selectedOption = document.querySelector('input[name="option"]:checked');
             if (!selectedOption) {
-                alert('Выберите ответ!');
+                const alertModal = document.createElement('div');
+                alertModal.className = 'explanation-modal';
+                alertModal.textContent = 'Выберите ответ!';
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Закрыть';
+                closeButton.onclick = () => {
+                    document.body.removeChild(alertModal);
+                };
+                alertModal.appendChild(document.createElement('br'));
+                alertModal.appendChild(closeButton);
+                document.body.appendChild(alertModal);
                 return;
             }
 
